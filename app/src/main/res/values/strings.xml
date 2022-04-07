@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Image Recognition</string>
+    <string name="select">Select</string>
+    <string name="take_photo">Take Photo</string>
+    <string name="predict">Predict</string>
+    <string name="image">Image</string>
 </resources>

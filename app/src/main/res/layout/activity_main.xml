@@ -14,26 +14,37 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toTopOf="@id/selectButton"
-        android:layout_marginTop="50dp"/>
+        android:layout_marginTop="25dp"
+        android:contentDescription="@string/image"/>
 
     <Button
         android:id="@+id/selectButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Select"
+        android:text="@string/select"
         app:layout_constraintTop_toBottomOf="@id/image"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintBottom_toTopOf="@id/predictButton"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="25dp"
+        />
+
+    <Button
+        android:id="@+id/cameraButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/take_photo"
+        app:layout_constraintTop_toBottomOf="@id/selectButton"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
         />
 
     <Button
         android:id="@+id/predictButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Predict"
-        app:layout_constraintTop_toBottomOf="@id/selectButton"
+        android:text="@string/predict"
+        app:layout_constraintTop_toBottomOf="@id/cameraButton"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         />
