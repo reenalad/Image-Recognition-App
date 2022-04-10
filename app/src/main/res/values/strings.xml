@@ -4,4 +4,5 @@
     <string name="take_photo">Take Photo</string>
     <string name="predict">Predict</string>
     <string name="image">Image</string>
+    <string name="instructions">Select an image from your device or take a photo</string>
 </resources>

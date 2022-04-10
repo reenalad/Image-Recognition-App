@@ -16,11 +16,15 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.core.view.isVisible
 import com.example.imagerecognition.ml.MobilenetV110224Quant
 import org.tensorflow.lite.DataType
+import org.tensorflow.lite.support.common.TensorProcessor
+import org.tensorflow.lite.support.common.ops.DequantizeOp
 import org.tensorflow.lite.support.image.TensorImage
 import org.tensorflow.lite.support.tensorbuffer.TensorBuffer
 import java.io.File
+import java.util.concurrent.CancellationException
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,6 +33,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var select: Button
     private lateinit var camera: Button
     private lateinit var predict: Button
+    private lateinit var instructions: TextView
     private lateinit var text: TextView
     private lateinit var bitmap: Bitmap
     private var imageUri: Uri? = null
@@ -43,10 +48,13 @@ class MainActivity : AppCompatActivity() {
         select = findViewById(R.id.selectButton)
         camera = findViewById(R.id.cameraButton)
         predict = findViewById(R.id.predictButton)
+        instructions = findViewById(R.id.instructions)
         text = findViewById(R.id.text)
 
-        //maintain state when the configuration changes
+        //maintain state when the orientation changes
         if (savedInstanceState != null) {
+            //hide the instructions
+            instructions.isVisible = false
             //get and display the image
             imageUri = savedInstanceState.getParcelable("imageUri")
             image.setImageURI(imageUri)
@@ -91,20 +99,26 @@ class MainActivity : AppCompatActivity() {
 
         //set onclicklistener to select an image from the phone when select button is pressed
         select.setOnClickListener {
-            //clear the textview
+            //clear the textviews
             text.text = " "
+            instructions.text = " "
             //clear the imageview
             image.setImageURI(null)
+            //remove the stored label (if any)
+            label = " "
             //launch the actvity
             pickImage.launch("image/*")
         }
 
         //set onclicklistener to take a picture with the phone camera
         camera.setOnClickListener {
-            //clear the textview
+            //clear the textviews
             text.text = " "
+            instructions.text = " "
             //clear the imageview
             image.setImageURI(null)
+            //remove the stored label (if any)
+            label = " "
             //try to take an image with the camera and get the uri
             try {
                 imageUri = FileProvider.getUriForFile(
@@ -117,6 +131,9 @@ class MainActivity : AppCompatActivity() {
             catch (e: ActivityNotFoundException) {
                 Log.e(ContentValues.TAG, "Camera not enabled on device")
                 Toast.makeText(this, "Cannot access device camera", Toast.LENGTH_SHORT).show()
+            } catch (e: SecurityException) {
+                Log.e(ContentValues.TAG, "Camera permission not given")
+                Toast.makeText(this, "Camera permission not given", Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -157,7 +174,15 @@ class MainActivity : AppCompatActivity() {
                 //get correct label for the prediction
                 val max = getMax(outputFeature0.floatArray)
 
-                label = labelList[max]
+                //use tensorprocessor to dequantize the output tensor to get the probabilities
+                val probabilityProcessor = TensorProcessor.Builder().add(DequantizeOp(0F, (1 / 255.0).toFloat())).build()
+                val dequantizedBuffer = probabilityProcessor.process(outputFeature0)
+
+                //get the max probability
+                val prob = dequantizedBuffer.getFloatValue(max)
+
+                //prediction and probability to display to user
+                label = labelList[max].replaceFirstChar { it.uppercase() } + "   " + "%.2f".format(prob * 100) + "%"
 
                 //show the prediction in the textview
                 text.text = label
@@ -179,12 +204,12 @@ class MainActivity : AppCompatActivity() {
     //get location with the maximum probability
     private fun getMax(array: FloatArray): Int {
         var index = 0
-        var minimum = 0.0f
+        var maximum = 0.0f
         for (i in 0..1000) {
-            //if the value at the index is greater than minimum, store in index
-            if (array[i] > minimum) {
+            //if the value at the index is greater than the current max value, store in index
+            if (array[i] > maximum) {
                 index = i
-                minimum = array[i]
+                maximum = array[i]
             }
         }
         return index
