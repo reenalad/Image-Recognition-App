@@ -171,7 +171,7 @@ class MainActivity : AppCompatActivity() {
                 val outputs = model.process(inputFeature0)
                 val outputFeature0 = outputs.outputFeature0AsTensorBuffer
 
-                //get correct label for the prediction
+                //find the max
                 val max = getMax(outputFeature0.floatArray)
 
                 //use tensorprocessor to dequantize the output tensor to get the probabilities
@@ -181,7 +181,7 @@ class MainActivity : AppCompatActivity() {
                 //get the max probability
                 val prob = dequantizedBuffer.getFloatValue(max)
 
-                //prediction and probability to display to user
+                //find the correct prediction label and probability to display to user
                 label = labelList[max].replaceFirstChar { it.uppercase() } + "   " + "%.2f".format(prob * 100) + "%"
 
                 //show the prediction in the textview
